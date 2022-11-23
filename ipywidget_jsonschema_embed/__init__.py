@@ -10,7 +10,7 @@ import traceback
 import time
 import threading
 
-__version__ = __VERSION__ = '0.0.1'
+__version__ = __VERSION__ = '0.0.5'
 
 app = Flask("ipywidget-jsonschema",
            static_url_path='/static', 
@@ -46,7 +46,9 @@ def event():
     action = request.args.get("action")
     form_data = request.get_json(silent=True)
     try:
-        get_state()['channel'][channel][action](form_data)
+        a = get_state()['channel'][channel].get(action, None)
+        if a is not None:
+            a(form_data)
     except:
         pass
     return {"status": 'success'}, 200
@@ -121,7 +123,7 @@ def jsonschema_emit(channel,
         changed = None,
         submitted = None,
         errors = None):
-    cs = get_state()['channel'][c] 
+    cs = get_state()['channel'][channel] 
     if changed is not None:
         cs['changed'] = changed
     if submitted is not None:
@@ -133,20 +135,31 @@ def jsonschema_emit(channel,
 from IPython.display import IFrame
 from ipywidget_jsonschema_embed import jsonschema_emit, create_jsonschema, get_state
 class JSONSchemaEmbed():
-    def __init__(self, json_schema={}, ui_schema={}, form_data={}, width="100%", height="200px"):
+    def __init__(self, json_schema={}, ui_schema={}, form_data={}, 
+                 changed=None, 
+                 submitted=None,
+                 errors=None,
+                 width="100%", height="200px"):
         # super(self).__init__()
         daemon_init()
         c, p = create_jsonschema(json_schema, 
                          ui_schema,
                          form_data,
-                      changed=lambda x: None,
-                      submitted=lambda x: None,
-                      errors=lambda x: None
+                      changed=changed,
+                      submitted=submitted,
+                      errors=errors
                      )
         self.channel = c
         self.port = p
         self.iframe = IFrame(src=f"/proxy/{p}/?channel={c}", width=width, height=height)
         
+    def callback(self, 
+            changed = None,
+            submitted = None,
+            errors = None):
+        jsonschema_emit(self.channel, changed, submitted, errors)
+        return True
+    
     def state(self):
         return get_state()
     

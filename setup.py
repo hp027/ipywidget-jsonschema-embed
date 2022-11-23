@@ -15,7 +15,7 @@ setuptools.setup(
     description="ipywidget_jsonschema_embed",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/hp027/ipywidget_jsonschema_embed",
+    url="https://github.com/hp027/ipywidget-jsonschema-embed",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
